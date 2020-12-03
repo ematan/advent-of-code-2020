@@ -2,6 +2,7 @@
 
 import sys
 import re
+import numpy as np
 
 #day1
 def day1():
@@ -38,6 +39,27 @@ def day2():
 
   print(count_1)
   print(count_2)
+
+
+def day3():
+  with open("inputs/3.txt", "r") as f:
+    lines = f.read().split('\n')
+    slope_width = len(lines[0])
+    slope_height = len(lines)
+
+    def count_trees(r, d):
+      trees = 0
+      for i in range(0, slope_height, d):
+        x_pos = (r*i//d)%slope_width
+
+        if lines[i][x_pos] == '#':
+          print(i, x_pos)
+          trees += 1
+      return trees
+
+    print(count_trees(3,1))
+    print(np.prod([count_trees(i, j) for i, j in [(1,1),(3,1),(5,1),(7,1),(1,2)]]))
+
 
 
 
