@@ -4,7 +4,7 @@ import sys
 import re
 import numpy as np
 
-#day1
+#-----------------------------------------------------------------------------------
 def day1():
   with open("inputs/1.txt", "r") as f:
     lines = f.read().split('\n')
@@ -15,7 +15,7 @@ def day1():
     print(results[0])
     print(results2[0])
 
-#day2
+#-----------------------------------------------------------------------------------
 def day2():
   pattern = re.compile(r'(\d+)-(\d+) ([a-zA-Z]): ([a-zA-Z]+)')
   count_1 = 0
@@ -40,7 +40,7 @@ def day2():
   print(count_1)
   print(count_2)
 
-
+#-----------------------------------------------------------------------------------
 def day3():
   with open("inputs/3.txt", "r") as f:
     lines = f.read().split('\n')
@@ -59,6 +59,51 @@ def day3():
 
     print(count_trees(3,1))
     print(np.prod([count_trees(i, j) for i, j in [(1,1),(3,1),(5,1),(7,1),(1,2)]]))
+
+#-----------------------------------------------------------------------------------
+def day4():
+  req_fields = {'byr', 'iyr', 'eyr', 'hgt', 'hcl', 'ecl', 'pid'}
+
+  def hgt_validation(value):
+    pattern = re.compile(r'(\d*)(in|cm)')
+    data = pattern.match(value)
+    if data:
+      h, unit = data.groups()
+      return ((unit == 'cm' and 150 <= int(h) <= 193) or
+              (unit == 'in' and  59 <= int(h) <= 76))
+    return False
+
+  validations = {
+    'byr': (lambda byr: 1920 <= int(byr) <= 2002),
+    'iyr': (lambda iyr: 2010 <= int(iyr) <= 2020),
+    'eyr': (lambda eyr: 2020 <= int(eyr) <= 2030),
+    'hgt': (lambda hgt: hgt_validation(hgt)),
+    'hcl': (lambda hcl: (re.compile(r'#[\da-z]{6}').match(hcl) is not None) ),
+    'ecl': (lambda ecl: ecl in ['amb','blu', 'brn', 'gry', 'grn', 'hzl', 'oth']),
+    'pid': (lambda pid: (len(pid)==9 and pid.isnumeric())),
+  }
+
+  def validate(data):
+    for f in req_fields:
+      if not f in data or not (validations[f](data[f])):
+        return False
+    return True
+
+  def part1(passports):
+    return sum([all(f in p for f in req_fields) for p in passports])
+
+  def part2(passports):
+    formatted = [x.split() for x in passports]
+    formatted = [[y.split(':') for y in x] for x in formatted]
+    formatted = [{y[0]: y[1] for y in x } for x in formatted]
+    return sum([validate(x) for x in formatted])
+
+  with open("inputs/4", "r") as f:
+    input = f.read().split('\n\n')
+
+    print(part1(input))
+    print(part2(input))
+
 
 
 
