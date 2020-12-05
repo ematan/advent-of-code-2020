@@ -94,8 +94,7 @@ def day4():
 
   def part2(passports):
     formatted = [x.split() for x in passports]
-    formatted = [[y.split(':') for y in x] for x in formatted]
-    formatted = [{y[0]: y[1] for y in x } for x in formatted]
+    formatted = [dict([y.split(':') for y in x]) for x in formatted]
     return sum([validate(x) for x in formatted])
 
   with open("inputs/4", "r") as f:
@@ -104,10 +103,46 @@ def day4():
     print(part1(input))
     print(part2(input))
 
+#-----------------------------------------------------------------------------------
+def day5():
+  def row(input):
+    lo, hi = 0, 127
+    for i in range(0,7):
+      if input[i] == 'F':
+        hi -= (hi-lo+1)/2
+      if input[i] == 'B':
+        lo += (hi-lo+1)/2
+    return int(lo)
+
+  def col(input):
+    l, r = 0, 7
+    for i in range(7,10):
+      if input[i] == 'L':
+        r -= (r-l+1)/2
+      if input[i] == 'R':
+        l += (r-l+1)/2
+    return int(l)
+
+  def seatID(input):
+    return 8*row(input)+col(input)
+
+  with open("inputs/5", "r") as f:
+    lines = f.read().split()
+
+    minId = min([seatID(line) for line in lines])
+    maxId = max([seatID(line) for line in lines])
+    ids = {seatID(line) for line in lines}
+    allIds = set(range(minId, maxId+1))
+    print(maxId)
+    print(max(allIds-ids))
 
 
 
 
+
+
+
+#-----------------------------------------------------------------------------------
 if __name__ == '__main__':
   try:
     globals()[sys.argv[1]](*sys.argv[2:])
