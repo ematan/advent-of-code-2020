@@ -3,6 +3,7 @@
 import sys
 import re
 import numpy as np
+import functools
 
 #-----------------------------------------------------------------------------------
 def day1():
@@ -107,24 +108,24 @@ def day4():
 def day5():
   def row(input):
     lo, hi = 0, 127
-    for i in range(0,7):
-      if input[i] == 'F':
+    for c in input:
+      if c == 'F':
         hi -= (hi-lo+1)/2
-      if input[i] == 'B':
+      if c == 'B':
         lo += (hi-lo+1)/2
     return int(lo)
 
   def col(input):
     l, r = 0, 7
-    for i in range(7,10):
-      if input[i] == 'L':
+    for c in input:
+      if c == 'L':
         r -= (r-l+1)/2
-      if input[i] == 'R':
+      if c == 'R':
         l += (r-l+1)/2
     return int(l)
 
   def seatID(input):
-    return 8*row(input)+col(input)
+    return 8*row(input[:7])+col(input[7:])
 
   with open("inputs/5", "r") as f:
     lines = f.read().split()
@@ -136,8 +137,16 @@ def day5():
     print(maxId)
     print(max(allIds-ids))
 
-
-
+#-----------------------------------------------------------------------------------
+def day6():
+  with open("inputs/6", "r") as f:
+    groups = f.read().split('\n\n')
+    #print(groups[0])
+    part1 = sum([len(set(group.replace('\n', ''))) for group in groups])
+    print(part1)
+    rows = [[set(row) for row in group.split('\n')] for group in groups]
+    part2 = sum([len(set.intersection(*row)) for row in rows])
+    print(part2)
 
 
 
