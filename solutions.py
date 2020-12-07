@@ -141,15 +141,54 @@ def day5():
 def day6():
   with open("inputs/6", "r") as f:
     groups = f.read().split('\n\n')
-    #print(groups[0])
+
     part1 = sum([len(set(group.replace('\n', ''))) for group in groups])
     print(part1)
     rows = [[set(row) for row in group.split('\n')] for group in groups]
     part2 = sum([len(set.intersection(*row)) for row in rows])
     print(part2)
 
+#-----------------------------------------------------------------------------------
+def day7():
+  d = {}
+  pattern = re.compile(r'(\d+?) (.+?) bag+')
+
+  with open("inputs/7", "r") as f:
+    lines = f.read().split('\n')
+
+    for line in lines:
+      (l1, l2) = line.split(' bags contain')
+      inner = pattern.findall(l2)
+      inner_dict = dict()
+      for i in inner:
+        inner_dict[i[1]] = int(i[0])
+      d[l1] = inner_dict
+
+  def rec_part1(bags):
+    for bag in bags:
+      if bag == 'shiny gold':
+        return True
+      else:
+        if rec_part1(d[bag]):
+          return True
+    return False
+
+  gold_capacities = {x:rec_part1(d[x]) for x in d}
+  part1 = len({x for x in gold_capacities if (gold_capacities[x]==True)})
+  print(part1)
 
 
+  @functools.lru_cache(maxsize=None)
+  def rec_part2(bagname):
+    if d[bagname] == {}:
+      return 0
+    else:
+      count = 0
+      for key, value in d[bagname].items():
+        count += value * (1+rec_part2(key))
+      return count
+
+  print(rec_part2('shiny gold'))
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
