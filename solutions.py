@@ -191,6 +191,49 @@ def day7():
   print(rec_part2('shiny gold'))
 
 #-----------------------------------------------------------------------------------
+def day8():
+  program = []
+  flags = []
+  flippable = []
+
+  with open("inputs/8", "r") as f:
+    lines = f.read().split('\n')
+    program = [line.split() for line in lines]
+    flags = [0] * len(lines)
+
+  def process_row(data, i, acc):
+    if i >= len(data):
+      return (acc, True)
+    elif flags[i] == 1:
+      return (acc, False)
+    else:
+      flags[i] = 1
+      command, value = data[i]
+      if command == 'acc':
+        return process_row(data, i+1, acc + int(value))
+      if command == 'jmp':
+        return process_row(data, i+int(value), acc)
+      if command == 'nop':
+        return process_row(data, i+1, acc)
+
+  part1, _ = process_row(program, 0, 0)
+  print('Part1:', part1)
+
+  for i in range(0, len(program)):
+    if program[i][0] in ('jmp', 'nop'):
+      flippable.append(i)
+
+  for i in flippable:
+    program[i][0] = 'nop' if program[i][0] == 'jmp' else 'jmp'
+    flags = [0] * len(program)
+    part2, success = process_row(program, 0, 0)
+    if success:
+      print('Part2:', part2)
+      break
+    program[i][0] = 'nop' if program[i][0] == 'jmp' else 'jmp'
+
+
+#-----------------------------------------------------------------------------------
 if __name__ == '__main__':
   try:
     globals()[sys.argv[1]](*sys.argv[2:])
