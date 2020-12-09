@@ -232,6 +232,53 @@ def day8():
       break
     program[i][0] = 'nop' if program[i][0] == 'jmp' else 'jmp'
 
+#-----------------------------------------------------------------------------------
+def day9():
+  rows = []
+
+  def read_data():
+    with open("inputs/9", "r") as f:
+      data = f.read().split('\n')
+      data = [int(i) for i in data]
+      return data
+
+  def check(arr, value):
+    hit = [i for i in arr for j in arr if i+j==value]
+    return len(hit)==0
+
+  invalid = 0
+  rows = read_data()
+  preamble = rows[0:25]
+  rest = rows[25:len(rows)]
+
+  while len(rest)>0:
+    current = rest.pop(0)
+    if check(preamble, current):
+      print('Part1:' , current)
+      invalid = current
+      break
+    preamble.pop(0)
+    preamble.append(current)
+
+
+  def part2(arr, target):
+    i = 0
+    while i < len(arr):
+      j = i
+      contiguous_sum = 0
+      while j < len(arr) and contiguous_sum < target:
+        contiguous_sum += arr[j]
+        if contiguous_sum == target:
+          return (i,j)
+        j += 1
+      i += 1
+    return (0,0)
+
+  rows = read_data()
+  i, j = part2(rows, invalid)
+  arr = rows[i:(j+1)]
+
+  print('Part2:', min(arr)+max(arr))
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
