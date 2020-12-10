@@ -281,6 +281,34 @@ def day9():
   print('Part2:', min(arr)+max(arr))
 
 #-----------------------------------------------------------------------------------
+def day10():
+  with open("inputs/10", "r") as f:
+    data = f.read().split('\n')
+    numbers = [int(i) for i in data]
+    goal = max(numbers)+3
+    numbers.extend((0, goal))
+
+    data_s = sorted(numbers, reverse=True)
+    l = len(data_s)
+
+    diff = [data_s[i] - data_s[i+1] for i in range(0,l-1)]
+    part1 = diff.count(3) * diff.count(1)
+    print('Part1:',part1)
+
+    data_s = sorted(numbers)
+    solutions_to_here = {0: 1}
+    for joltage in data_s:
+      count = 0
+      for i in range(0,4):
+        if (joltage-i) in solutions_to_here:
+          count += solutions_to_here[joltage-i]
+      solutions_to_here[joltage] = count
+
+    print('Part2:',solutions_to_here[goal])
+
+
+
+#-----------------------------------------------------------------------------------
 if __name__ == '__main__':
   try:
     globals()[sys.argv[1]](*sys.argv[2:])
