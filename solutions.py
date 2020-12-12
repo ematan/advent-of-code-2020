@@ -4,6 +4,7 @@ import sys
 import re
 import numpy as np
 import functools
+import time
 
 #-----------------------------------------------------------------------------------
 def day1():
@@ -306,6 +307,85 @@ def day10():
 
     print('Part2:',solutions_to_here[goal])
 
+#-----------------------------------------------------------------------------------
+def day11():
+  with open("inputs/11", "r") as f:
+    data = f.read().split('\n')
+    width = len(data[0])
+    height = len(data)
+
+    state = data
+
+    def part1_adjacents(state, x, y):
+      minX = x-1 if x-1>=0 else x
+      maxX = x+1 if x+1<width else x
+      minY = y-1 if y-1>=0 else y
+      maxY = y+1 if y+1<height else y
+
+      count = 0
+      for i in range(minX, maxX+1):
+        for j in range(minY, maxY+1):
+          if state[j][i] == '#' and not (i==x and j==y):
+            count +=1
+      return count
+
+    def part1_evolution(state, i,j):
+      c = part1_adjacents(state, i, j)
+      if state[j][i] == 'L' and c==0:
+        return '#'
+      elif state[j][i] == '#' and c>3:
+        return 'L'
+      else:
+        return state[j][i]
+
+    def part2_adjacents(state, x, y, dirX, dirY):
+      curX, curY = x+dirX, y+dirY
+      while(0<=curX<width and 0<=curY<height):
+        if state[curY][curX]=='#':
+          return 1
+        elif state[curY][curX]=='L':
+          return 0
+        else:
+          curX += dirX
+          curY += dirY
+      return 0
+
+    DIRS = [(0,1),(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1)]
+
+    def part2_evolution(state, i, j):
+      c = 0
+      for dir in DIRS:
+        c += part2_adjacents(state, i, j, dir[0], dir[1])
+      if state[j][i] == '#' and c > 4:
+        return 'L'
+      if state[j][i] == 'L' and c == 0:
+        return '#'
+      else:
+        return state[j][i]
+
+    def evolve(world, evolve_func):
+      no_diff = True
+      while(no_diff):
+        newworld = []
+        for j in range(0,height):
+          row = ''
+          for i in range(0, width):
+            row += evolve_func(world, i, j)
+          newworld.append(row)
+        if (world == newworld):
+          no_diff=False
+        world=newworld
+        #time.sleep(0.1)
+        #print('-------------------')
+        #print('\n'.join(world))
+      return world
+
+    s = evolve(state, part1_evolution)
+    part1 = sum(row.count('#') for row in s)
+    print(part1)
+    s2 = evolve(state, part2_evolution)
+    part2 = sum(row.count('#') for row in s2)
+    print(part2)
 
 
 #-----------------------------------------------------------------------------------
