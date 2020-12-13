@@ -387,6 +387,118 @@ def day11():
     part2 = sum(row.count('#') for row in s2)
     print(part2)
 
+#-----------------------------------------------------------------------------------
+def day12():
+
+  class Boat:
+    def __init__(self):
+      self._positionX = 0
+      self._positionY = 0
+      self._direction = 'E'
+      self._actions = {
+        'N': lambda y: self.move(0, y),
+        'E': lambda x: self.move(x, 0),
+        'S': lambda y: self.move(0, -y),
+        'W': lambda x: self.move(-x, 0),
+        'L': lambda deg: self.turn(-deg),
+        'R': lambda deg: self.turn(deg),
+        'F': lambda val: self._actions[self._direction](val)
+      }
+
+    def move(self, x, y):
+      self._positionX +=x
+      self._positionY +=y
+
+    def turn(self, deg):
+      dirs = 'NESW'
+      new_index = (dirs.index(self._direction) + (deg // 90)) % 4
+      self._direction = dirs[new_index]
+
+    def do(self, action, value):
+      self._actions[action](value)
+
+    def manhattan(self):
+      return abs(self._positionX) + abs(self._positionY)
+
+
+  class Waypoint:
+    def __init__(self):
+      self._positionX = 10
+      self._positionY = 1
+      self._boat = [0, 0]
+      self._actions = {
+        'N': lambda y: self.move(0, y),
+        'E': lambda x: self.move(x, 0),
+        'S': lambda y: self.move(0, -y),
+        'W': lambda x: self.move(-x, 0),
+        'L': lambda deg: self.turn(-deg),
+        'R': lambda deg: self.turn(deg),
+        'F': lambda val: self.move_boat(val)
+      }
+
+    def move_boat(self, value):
+      self._boat[0] += value * self._positionX
+      self._boat[1] += value * self._positionY
+
+    def move(self, x, y):
+      self._positionX +=x
+      self._positionY +=y
+
+    def turn(self, deg):
+      x = (deg // 90) % 4
+      if x == 1:
+        self._positionX, self._positionY = self._positionY, -self._positionX
+      elif x == 2:
+        self._positionX, self._positionY = -self._positionX, -self._positionY
+      elif x == 3:
+        self._positionX, self._positionY = -self._positionY, self._positionX
+
+    def do(self, action, value):
+      self._actions[action](value)
+
+    def manhattan(self):
+      return abs(self._boat[0]) + abs(self._boat[1])
+
+  with open("inputs/12", "r") as f:
+    data = f.read().split('\n')
+
+    boatyMcBoatFace = Boat()
+    totallyLegitDirection = Waypoint()
+    pattern = re.compile(r'([A-Z])(\d+)')
+    for row in data:
+      action, value = pattern.match(row).groups()
+      boatyMcBoatFace.do(action, int(value))
+      totallyLegitDirection.do(action, int(value))
+    print(boatyMcBoatFace.manhattan())
+    print(totallyLegitDirection.manhattan())
+
+
+#-----------------------------------------------------------------------------------
+def day13():
+  data = []
+  with open("inputs/13", "r") as f:
+    data = f.read().split('\n')
+    timestamp = int(data[0])
+    buses = [int(b) for b in data[1].split(',') if b!='x']
+    busdict = {}
+    for bus in buses:
+      busdict[bus] = (bus - timestamp) % bus
+    best = min(busdict, key=busdict.get)
+    part1 = best * busdict[best]
+    print('Part1:', part1)
+
+    multiplier = 1
+    result = 0
+    indexed_buses = [(x[0], x[1]) for x in enumerate(data[1].split(',')) if x[1]!='x']
+    for i, bus in indexed_buses:
+      while (result + i) % int(bus) != 0:
+        result += multiplier
+      multiplier *= int(bus)
+
+    print('Part2:',result)
+
+
+
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
