@@ -489,13 +489,98 @@ def day13():
 
     multiplier = 1
     result = 0
-    indexed_buses = [(x[0], x[1]) for x in enumerate(data[1].split(',')) if x[1]!='x']
+    indexed_buses = [(x[0], int(x[1])) for x in enumerate(data[1].split(',')) if x[1]!='x']
     for i, bus in indexed_buses:
-      while (result + i) % int(bus) != 0:
+      while (result + i) % bus != 0:
         result += multiplier
-      multiplier *= int(bus)
+      multiplier *= bus
 
     print('Part2:',result)
+#-----------------------------------------------------------------------------------
+def day14():
+  data = []
+  with open("inputs/14", "r") as f:
+    data = f.read().split('\n')
+
+  pattern = re.compile(r'mem\[(\d+)\]')
+
+  def part1(lines):
+    mask = 'X'*36
+    all_memories = {}
+    for row in lines:
+      op, _, value = row.split(' ')
+      if op == 'mask':
+        mask = value
+      else:
+        temp_mask = list(mask)
+        slot = int(pattern.match(op).groups()[0])
+        value_in_bit = f"{int(value):036b}"
+
+        for i in range(0, len(temp_mask)):
+          if temp_mask[i] == 'X':
+            temp_mask[i] = value_in_bit[i]
+        all_memories[slot] = int(''.join(temp_mask), 2)
+    return sum(all_memories.values())
+
+  def part2(lines):
+    mask = 'X'*36
+    all_memories = {}
+    for row in lines:
+      op, _, value = row.split(' ')
+      if op == 'mask':
+        mask = value
+      else:
+        temp_mask = list(mask)
+        slot = int(pattern.match(op).groups()[0])
+        slot_in_bit = f"{slot:036b}"
+
+        floaters = []
+        for i in range(0, len(mask)):
+          if temp_mask[i] == '0':
+            temp_mask[i] = slot_in_bit[i]
+          if temp_mask[i] == 'X':
+            floaters.append(i)
+
+        for ind in range(0, np.power(2, len(floaters))):
+          current = temp_mask.copy()
+          index_in_bit = str(bin(ind))[2:]
+          index_in_bit = '0' * (len(floaters) - len(index_in_bit)) + index_in_bit
+          for i, j in zip(floaters, index_in_bit):
+            current[i] = j
+          all_memories[''.join(current)] = int(value)
+    return sum(all_memories.values())
+
+
+  print(part1(data))
+  print(part2(data))
+
+#-----------------------------------------------------------------------------------
+def day15():
+  data = []
+  with open("inputs/15", "r") as f:
+    data = [int(d) for d in f.read().split(',')]
+
+
+
+  roundsA=2020
+  roundsB=30000000
+
+  def run(year):
+    mem = {val:i for i, val in enumerate(data[:len(data)-1])}
+    prev = data[-1]
+
+    for i in range(len(data), year):
+      if prev in mem:
+        cur=i-mem[prev]-1
+      else:
+        cur = 0
+      mem[prev] = i-1
+      prev = cur
+    return prev
+
+  print(run(roundsA))
+  print(run(roundsB))
+
 
 
 
