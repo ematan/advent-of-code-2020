@@ -5,6 +5,7 @@ import re
 import numpy as np
 import functools
 import time
+import itertools
 
 #-----------------------------------------------------------------------------------
 def day1():
@@ -629,13 +630,42 @@ def day16():
   part2 = [ticket[k] for k, v in field_dict.items() for val in v if 'departure' in val]
   print(np.prod(part2))
 
+#-----------------------------------------------------------------------------------
+def day17():
+  data = []
+  with open("inputs/17", "r") as f:
+    data = f.read().split('\n')
 
+  def initialize(dim):
+    return set((j,i)+(0,)*(dim-2) for i in range(len(data)) for j in range(len(data[0])) if data[i][j] == '#')
 
+  def neighbors(point):
+    offsets = itertools.product([-1, 0, 1], repeat=len(point))
+    n = [tuple(sum(x) for x in zip(o, point)) for o in offsets if any(o)]
+    return n
 
+  def cycle(state):
+    new_state = set()
+    for cube in state:
+      cube_neighbors = neighbors(cube)
+      count = sum([1 for n in cube_neighbors if n in state])
+      if count in [2,3]:
+        new_state = new_state | {cube}
 
+      potentials = [n for n in cube_neighbors if n not in state]
+      for p in potentials:
+        if p not in new_state and sum([1 for n in neighbors(p) if n in state]) == 3:
+          new_state = new_state | {p}
+    return new_state
 
+  def run(dim):
+    state = initialize(dim)
+    for _ in range(6):
+      state = cycle(state)
+    return len(state)
 
-
+  print(run(3))
+  print(run(4))
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
