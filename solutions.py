@@ -560,8 +560,6 @@ def day15():
   with open("inputs/15", "r") as f:
     data = [int(d) for d in f.read().split(',')]
 
-
-
   roundsA=2020
   roundsB=30000000
 
@@ -580,6 +578,60 @@ def day15():
 
   print(run(roundsA))
   print(run(roundsB))
+
+#-----------------------------------------------------------------------------------
+def day16():
+  data = []
+  with open("inputs/16", "r") as f:
+    data = f.read().split('\n\n')
+
+
+  field_values = dict()
+  pattern = re.compile(r'(.+): (\d+)-(\d+) or (\d+)-(\d+)')
+  for l in data[0].split('\n'):
+    op, x1, x2, y1, y2 = pattern.match(l).groups()
+    field_values[op] = set([*range(int(x1), int(x2)+1)] + [*range(int(y1), int(y2)+1)])
+
+  ticket = [int(x) for x in data[1].split('\n')[1].split(',')]
+  others = [[int(y) for y in x.split(',')] for x in data[2].split('\n')[1:]]
+
+  field_dict = {i:set(field_values.keys()) for i in range(len(field_values))}
+  valid_numbers = set.union(*field_values.values())
+
+  # Part1
+  part1 = sum([value for row in others for value in row if value not in valid_numbers])
+  print(part1)
+
+
+  # Part2
+  good = [row for row in others if all([x in valid_numbers for x in row])]
+  for row in good:
+    for i in range(len(row)):
+      possibles = field_dict[i]
+      impossibles = set()
+      for name in possibles:
+        if row[i] not in field_values[name]:
+          impossibles = impossibles | {name}
+      field_dict[i] = possibles - impossibles
+
+
+  solved = {}
+  unsolved = set([*range(len(ticket))])
+  while(len(unsolved)>0):
+    best = sorted([[len(v),k] for k, v in field_dict.items() if k in unsolved])[0]
+    if best[0] == 1:
+      unsolved = unsolved - {best[1]}
+      name = field_dict[best[1]]
+      solved[best[1]] = name
+      for u in unsolved:
+        field_dict[u] -= name
+
+  part2 = [ticket[k] for k, v in field_dict.items() for val in v if 'departure' in val]
+  print(np.prod(part2))
+
+
+
+
 
 
 
