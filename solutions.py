@@ -668,6 +668,56 @@ def day17():
   print(run(4))
 
 #-----------------------------------------------------------------------------------
+def day18():
+  data = []
+  with open("inputs/18", "r") as f:
+    data = f.read().split('\n')
+
+  def process(data, math_rule):
+    if '(' not in data:
+      return math_rule(data)
+
+    parentheses = ()
+    stack = []
+
+    for i, c in enumerate(data):
+      if c == "(":
+        stack.append(i)
+      elif c == ")":
+        parentheses = (stack.pop(), i)
+        break
+
+
+    a, b = parentheses
+    e = process(data[a+1: b], math_rule)
+
+    cont = str(data[:a]) + str(e) + str(data[b+1:])
+    return process(cont, math_rule)
+
+  def calc(data):
+    row = data.split()
+    res = int(row[0])
+    for s, n in zip(*(iter(row[1:]),) * 2):
+      if s == '+':
+        res += int(n)
+      if s == '*':
+        res *= int(n)
+    return res
+
+  def calc_2(data):
+    parts = data.split('*')
+    return np.prod([calc(part) for part in parts])
+
+
+
+  print(sum(process(row, calc) for row in data))
+  print(sum(process(row, calc_2) for row in data))
+
+
+
+
+
+#-----------------------------------------------------------------------------------
 if __name__ == '__main__':
   try:
     globals()[sys.argv[1]](*sys.argv[2:])
