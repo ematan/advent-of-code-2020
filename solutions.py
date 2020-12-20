@@ -713,9 +713,50 @@ def day18():
   print(sum(process(row, calc) for row in data))
   print(sum(process(row, calc_2) for row in data))
 
+#-----------------------------------------------------------------------------------
+def day19():
+  data = []
+  with open("inputs/19", "r") as f:
+    data = f.read().split('\n\n')
+
+  rule_dict = {}
+  for row in data[0].split('\n'):
+    elems = row.split(' ')
+    rule_dict[elems[0][:-1]] =  ' '.join(elems[1:])
+
+  def process(d, rule, part=1):
+    r = d[rule]
+    if r.strip('"') in ['a', 'b']:
+      return r.strip('"')
+
+    if part == 2:
+      if rule == '8':
+        return f'(?:{process(d, "42", part)}+)'
+      if rule == '11':
+        x = []
+        for i in range(1, 20):
+          x.append(f'{i * process(d, "42", part)}{i * process(d, "31", part)}')
+        return f'(?:{"|".join(x)})'
+
+    res = ''
+    for elem in r.split(' '):
+      if elem == '|':
+        res += elem
+      else:
+        res += process(d, elem, part)
+    return f'(?:{res})'
+
+  p = f'^{process(rule_dict, "0")}$'
+  pattern = re.compile(p)
+
+  part1 = sum(1 for row in data[1].split('\n') if pattern.match(row))
+  print(part1)
 
 
-
+  p = f'^{process(rule_dict, "0", 2)}$'
+  pattern = re.compile(p)
+  part2 = sum(1 for row in data[1].split('\n') if pattern.match(row))
+  print(part2)
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
