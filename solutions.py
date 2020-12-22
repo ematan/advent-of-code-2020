@@ -938,6 +938,57 @@ def day21():
   print(part2())
 
 #-----------------------------------------------------------------------------------
+def day22():
+  data = []
+  with open("inputs/22", "r") as f:
+    data = f.read().strip().split('\n\n')
+  deck1 = [int(c) for c in data[0].split('\n')[1:]]
+  deck2 = [int(c) for c in data[1].split('\n')[1:]]
+
+  def game1(p1, p2):
+    while (len(p1)>0 and len(p2)>0):
+      c1 = p1.pop(0)
+      c2 = p2.pop(0)
+      if c1 > c2:
+        p1.extend([c1, c2])
+      else:
+        p2.extend([c2, c1])
+    winner = p1 if len(p1)>len(p2) else p2
+    return winner
+
+  def score(deck):
+    return sum((i+1)*d for i, d in enumerate(reversed(deck)))
+
+  def game2(p1, p2):
+
+    seen = set()
+    while(len(p1)>0 and len(p2)>0):
+      s = (tuple(p1), tuple(p2))
+      if s in seen:
+        return 1, [p1, p2]
+
+      seen.add(s)
+      c1 = p1.pop(0)
+      c2 = p2.pop(0)
+      if len(p1) >= c1 and len(p2) >= c2:
+        p1_win, _ = game2(p1[:c1], p2[:c2])
+        if p1_win:
+          p1.extend([c1, c2])
+        else:
+          p2.extend([c2, c1])
+      else:
+        if c1 > c2:
+          p1.extend([c1, c2])
+        else:
+          p2.extend([c2, c1])
+    winner = len(p1)>len(p2)
+    return  winner, [p1,p2]
+
+  print(score(game1(deck1.copy(), deck2.copy())))
+  part2 = game2(deck1.copy(), deck2.copy())
+  print(score([win for win in part2[1] if len(win)>0][0]))
+
+#-----------------------------------------------------------------------------------
 if __name__ == '__main__':
   try:
     globals()[sys.argv[1]](*sys.argv[2:])
