@@ -6,6 +6,7 @@ import numpy as np
 import functools
 import time
 import itertools
+from collections import Counter
 
 #-----------------------------------------------------------------------------------
 def day1():
@@ -677,7 +678,7 @@ def day18():
     if '(' not in data:
       return math_rule(data)
 
-    parentheses = ()
+    parentheses = tuple()
     stack = []
 
     for i, c in enumerate(data):
@@ -757,6 +758,184 @@ def day19():
   pattern = re.compile(p)
   part2 = sum(1 for row in data[1].split('\n') if pattern.match(row))
   print(part2)
+
+#-----------------------------------------------------------------------------------
+def day20():
+  data = []
+  with open("inputs/20", "r") as f:
+    data = f.read().strip().split('\n\n')
+
+
+  class Piece:
+    def __init__(self, name, state):
+      self._name = name
+      self._state = state
+      self.top = state[0]
+      self.bottom = state[-1]
+      self.left = ''.join([row[0] for row in self._state])
+      self.right = ''.join([row[-1] for row in self._state])
+      self.edges = [self.top, self.right, self.bottom[::-1], self.left[::-1]]
+      self.center = [row[1:-1] for row in state[1:-1]]
+
+    def edge_variations(self):
+      return self.edges + [e[::-1] for e in self.edges]
+
+    def rotated(self):
+      return Piece(self._name, [''.join(t) for t in zip(*reversed(self._state))])
+
+    def flipped(self):
+      return Piece(self._name, list(reversed(self._state)))
+
+    def __str__(self):
+      return '\n'.join(self._state) + '\n'
+
+    def parse(info):
+      x = info.split('\n')
+      return Piece(x[0][5:-1], x[1:])
+
+    def __repr__(self):
+      return f'Tile({self._name})'
+
+
+  pieces = [Piece.parse(d) for d in data]
+
+  edge_counts = Counter([e for p in pieces for e in p.edge_variations()])
+  corners = []
+  edges_per_piece = {}
+  for p in pieces:
+    if sum(edge_counts[e] for e in p.edges) == 6:
+      corners.append(p)
+    for e in p.edge_variations():
+      edges_per_piece.setdefault(e, []).append(p)
+
+
+  part1 = np.prod([int(tile._name) for tile in corners])
+  print(part1)
+
+  top_left = corners[0].flipped()
+
+  while (edge_counts[top_left.top] != 1 or edge_counts[top_left.left] != 1):
+    top_left = top_left.rotated()
+
+  curr = top_left
+  puzzle = []
+  not_last_row = True
+  while(not_last_row):
+    row = [curr]
+    while(edge_counts[curr.right] != 1):
+      x = [p for p in edges_per_piece[curr.right] if p._name != curr._name][0]
+      if curr.right[::-1] not in x.edges:
+        x = x.flipped()
+      while (curr.right != x.left):
+        x = x.rotated()
+      curr = x
+      row.append(curr)
+    curr = row[0]
+    puzzle.append(row)
+
+    if edge_counts[curr.bottom] == 1:
+      not_last_row = False
+    else:
+      y = [p for p in edges_per_piece[curr.bottom] if p._name != curr._name][0]
+      if curr.bottom not in y.edges:
+        y = y.flipped()
+      n = 0
+      while (curr.bottom != y.top and n != 5):
+        y = y.rotated()
+        n+=1
+      curr = y
+
+  completed = [''.join(bb) for row in puzzle for bb in list(zip(*[aa.center for aa in row]))]
+
+  monster = [ '                  # ' ,
+              '#    ##    ##    ###' ,
+              ' #  #  #  #  #  #   ' ]
+
+  monster_loc = [[i for i in range(len(row)) if row[i]=='#'] for row in monster]
+
+  m_h = len(monster)
+  m_w = len(monster[0])
+  p_h = len(completed)
+  p_w = len(completed[0])
+
+  def monsterAt(picture, i, j, m):
+    loc = []
+    for y in range(m_h):
+      for spot in m[y]:
+        if picture[j+y][i+spot] != '#':
+          return []
+        loc.append((j+y,i+spot))
+    return loc
+
+
+  def locate(picture, m):
+    count = 0
+    locations = []
+    for j in range(p_h-m_h):
+      for i in range(p_w-m_w):
+        l =  monsterAt(picture, i, j, m)
+        if l:
+          count +=1
+          locations +=l
+    return count, locations
+
+  def flipped_world(picture):
+    return list(reversed(picture))
+  def rotated_world(picture):
+    return [''.join(t) for t in zip(*reversed(picture))]
+
+  res = []
+  world = completed
+  while(len(res) == 0):
+    if locate(world, monster_loc)[0] > 0:
+      res = world
+    elif locate(flipped_world(world), monster_loc)[0] > 0:
+      res = flipped_world(world)
+    world = rotated_world(world)
+
+  _, loc = locate(res, monster_loc)
+  all_hashtags = sum(1 for row in res for i in row if i=='#')
+
+  print(all_hashtags - len(set(loc)))
+#-----------------------------------------------------------------------------------
+def day21():
+  data = []
+  with open("inputs/21", "r") as f:
+    data = f.read().strip().split('\n')
+
+  pattern = re.compile(r'(.+) \(contains (.+)\)')
+  a_dict = {}
+  i_list = []
+  for row in data:
+    i, a = pattern.match(row).groups()
+    ingredients = i.split()
+    i_list.extend(ingredients)
+    for allergen in a.split(', '):
+      if allergen in a_dict:
+        a_dict[allergen] &= set(ingredients)
+      else:
+        a_dict[allergen] = set(ingredients)
+
+  def part1():
+    i_counts = Counter(i_list)
+    not_allergens = i_counts.keys() - set.union(*a_dict.values())
+    return sum(i_counts[non] for non in not_allergens)
+
+  def part2():
+    confirmed = {}
+    unsolved = a_dict.copy()
+    while (len(unsolved.keys())> 0):
+      best = sorted([len(v),k]for k, v in a_dict.items() if k in unsolved.keys())[0]
+      ing = unsolved.pop(best[1])
+      confirmed[best[1]] = ing
+      for u in unsolved.keys():
+        unsolved[u] -= ing
+
+    part2 = [confirmed[key].pop() for key in sorted(confirmed.keys())]
+    return ','.join(part2)
+
+  print(part1())
+  print(part2())
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
