@@ -987,6 +987,39 @@ def day22():
   print(score(game1(deck1.copy(), deck2.copy())))
   part2 = game2(deck1.copy(), deck2.copy())
   print(score([win for win in part2[1] if len(win)>0][0]))
+#-----------------------------------------------------------------------------------
+def day23():
+  data = []
+  with open("inputs/23", "r") as f:
+    data = [int(d) for d in  f.read().strip()]
+
+  def game(cups, turns):
+    linked = {a:b for a,b in zip(cups, cups[1:]+[cups[0]])}
+    curr = cups[0]
+    maximum = len(cups)
+
+    for x in range(turns):
+      x = curr
+      pick_up = [x := linked[x] for _ in range(3)]
+      dest = curr
+      for i in range(curr-1, curr-5, -1):
+        cup = i if i > 0 else maximum+i
+        if cup not in pick_up:
+          dest = cup
+          break
+      linked[curr], linked[dest], linked[pick_up[-1]]= linked[pick_up[-1]], linked[curr], linked[dest]
+      curr = linked[curr]
+
+    x = 1
+    return [x := linked[x] for _ in cups]
+
+  p1 = game(data, 100)
+  print(''.join(str(c) for c in p1[:len(data)-1]))
+
+  part2_data = data[:] + [*range(len(data)+1, 1_000_000+1)]
+  p2 = game(part2_data,  10_000_000)
+  print(p2[0]*p2[1])
+
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
