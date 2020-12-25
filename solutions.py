@@ -1020,6 +1020,68 @@ def day23():
   p2 = game(part2_data,  10_000_000)
   print(p2[0]*p2[1])
 
+#-----------------------------------------------------------------------------------
+def day24():
+  data = []
+  with open("inputs/24", "r") as f:
+    data = f.read().strip().split('\n')
+
+  # offset coordinates
+  # “odd-r” horizontal layout - shoves odd rows right
+  def parse(line):
+    q,r = 0, 0
+    while line.strip():
+      if line[0] == 'w':
+        q -= 1
+        line = line[1:]
+      elif line[0] == 'e':
+        q += 1
+        line = line[1:]
+      elif line[:2] =='se':
+        r =  r+1
+        line = line[2:]
+      elif line[:2] =='sw':
+        q, r = q-1, r+1
+        line = line[2:]
+      elif line[:2] =='ne':
+        q, r = q+1, r-1
+        line = line[2:]
+      elif line[:2] =='nw':
+        r = r-1
+        line = line[2:]
+    return q, r
+
+  counter = Counter(parse(row) for row in data)
+  blacks = [x for x, v in counter.items() if v % 2 ]
+  print(f'Part 1: {len(blacks)}')
+
+  def neighbors(tile):
+    offsets = [(1,-1), (1, 0), (0,1),(-1, 1), (-1,0), (0,-1)]
+    n = [tuple(sum(x) for x in zip(o, tile)) for o in offsets if any(o)]
+    return n
+
+  def cycle(state):
+    new_state = set()
+    for tile in state:
+      tile_neighbors = neighbors(tile)
+      count = sum([1 for n in tile_neighbors if n in state])
+      if count in [1, 2]:
+        new_state = new_state | {tile}
+
+      potentials = [n for n in tile_neighbors if n not in state]
+      for p in potentials:
+        if p not in new_state and sum([1 for n in neighbors(p) if n in state]) == 2:
+          new_state = new_state | {p}
+    return new_state
+
+  world = set(blacks)
+  for i in range(1, 101):
+    world = cycle(world)
+    #print(f'Day {i}: {len(world)}')
+
+  print(f'Part 2: {len(world)}')
+
+
 
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
