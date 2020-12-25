@@ -1081,8 +1081,23 @@ def day24():
 
   print(f'Part 2: {len(world)}')
 
+#-----------------------------------------------------------------------------------
+def day25():
+  data = []
+  with open("inputs/25", "r") as f:
+    data = f.read().strip().split('\n')
 
+  key1, key2 = [int(row) for row in data]
+  div = 20201227
+  subj = 7
 
+  value = 1
+  loopsize = 0
+  while value != key2:
+    loopsize +=1
+    value = subj * value % div
+
+  print(pow(key1, loopsize, div))
 #-----------------------------------------------------------------------------------
 if __name__ == '__main__':
   try:
